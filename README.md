@@ -1,10 +1,67 @@
 # 📊 Nowcast Lab: Transparent Commodity & Macro Nowcasts
 
-**Nowcast Lab** is a rigorous, transparent, and fully automated Python framework for building publication-aware nowcasts and indices for commodities (Crude Oil) and macroeconomic indicators (Inflation, Labour, Market Conditions). 
+**Nowcast Lab** is a rigorous, transparent, quantitative research framework and fully automated Python framework for building publication-aware nowcasts and indices for commodities (Crude Oil) and macroeconomic indicators (Inflation, Labor, Market Conditions). 
 
-Built with a strict **"baselines first, walk-forward, zero look-ahead bias"** philosophy, it transforms free, public data into institutional-grade research dashboards and automated analytical commentary.
+Built with a strict **"baselines first, walk-forward tests, and automated look-ahead checks"** philosophy, this repository prioritizes methodological rigor over black-box machine learning. Every data point is joined using exact publication dates, ensuring that no future information leaks into historical backtests.
 
 ---
+
+## 🌟 Key Features
+
+* 🛢️ **Crude Pressure Index:** A transparent, equal-weighted z-score index for a 1-week WTI view, built on 4 *a priori* signed components (momentum, Brent-WTI premium, USD, volatility).
+* 📈 **Macro Nowcasts:** Month-to-date (MTD) nowcasts for US CPI, Payroll Growth, and Unemployment using high-frequency proxies.
+* 📊 **Market Indices:** Daily Market Conditions (stress) and weekly Labour Pulse indices, benchmarked against the Chicago Fed NFCI and S&P 500.
+* 🛰️ **Alternative Data Engine:** Rigorous, publication-aware testing of logistics (PortWatch), positioning (CFTC), and fundamentals (EIA/JODI).
+* 🛡️ **Automated Look-Ahead Guards:** A dedicated `pytest` suite that rebuilds the entire pipeline as of historical dates to mathematically guarantee zero data leakage.
+
+---
+
+## 🔬 Approach & Methodology
+
+### 1. Publication-Aware Point-in-Time (PIT) Engine
+Raw data is transformed into `(observation_date, publication_date, value)` tuples. The panel is built on the trading calendar, taking only the latest value whose `publication_date <= current_date`. 
+
+### 2. Baselines First
+Before testing complex models, the framework establishes naive baselines (e.g., Random Walk for daily returns, Seasonal Mean for monthly macro data). A model is only considered useful if it statistically beats the baseline.
+
+### 3. Walk-Forward Validation
+Models are refitted monthly. Training labels are strictly embargoed by the forecast horizon (e.g., a 5-day ahead prediction only trains on data where the 5-day return has already realized).
+
+### 4. Multiple-Testing Corrections
+Alternative data signals are evaluated using Rank IC and HAC t-statistics, with **Bonferroni corrections** applied to prevent false discoveries from data snooping.
+
+---
+
+## ⚖️ Assumptions
+
+1. **Deterministic Release Lags:** The framework assumes specific, deterministic publication rules (e.g., EIA weekly data released Wed 10:30 ET is usable for the Thursday close).
+2. **A Priori Economic Sign:** Component signs (e.g., strong USD is bearish for oil) are fixed *before* looking at backtest results to avoid data snooping.
+3. **Trailing Stationarity:** A trailing 3-year window is sufficient to normalize cross-sectional signals into comparable z-scores.
+4. **Free Data Proxies:** Public, keyless data sources are assumed to be accurate and timely enough for prototype signal extraction.
+
+---
+
+## ⚠️ Limitations
+
+* **Statistical Insignificance:** The 1-week crude oil view frequently yields a Diebold-Mariano t-stat $< 2$, meaning it is not statistically distinguishable from a simple "no-change" random walk over the full out-of-sample period.
+* **Macro Revision Bias:** Macro backtests currently use the *latest vintage* of revised data (e.g., final payroll numbers). This flatters the backtest; true production models require first-release vintages.
+* **No Futures Curve Modeling:** The crude model predicts spot WTI returns. It ignores the futures curve structure (contango/backwardation), roll yield, and the cost of carry.
+* **Geopolitical Shocks:** Geopolitical events are treated as visual context markers, not quantitatively modeled structural breaks.
+* **Live-Only News:** The GDELT news sentiment indicator is restricted to the last ~3 months due to API limitations and cannot be formally backtested.
+
+---
+
+## 🚀 Path to Production
+
+Before deploying this framework in a live trading or institutional environment, the following upgrades are required:
+
+1. **Point-in-Time Revision Databases:** Integrate a paid provider (e.g., Bloomberg, Refinitiv, or FRED ALFRED) to train on *first-release* vintages of macro data.
+2. **Transaction Costs & Roll Yield:** Build an execution simulator that translates spot predictions into futures roll strategies, accounting for bid-ask spreads and slippage.
+3. **Robust Orchestration:** Migrate from local scripts to a production workflow orchestrator (e.g., Airflow, Prefect) with automated data-quality alerting.
+4. **Regime-Switching Models:** Upgrade from linear ridge regression to Hidden Markov Models (HMM) to better capture non-linear volatility regimes.
+
+---
+
 
 ## ✨ Key Features
 
